@@ -20,6 +20,14 @@ var userSettings = {
         } else {
             this.units = 'imperial';
         }
+    },
+    
+    appendUnit : function () {
+        if (this.config.units === 'imperial') {
+            return "F";
+        } else {
+            return "C";
+        }
     }
 }
 
@@ -63,14 +71,14 @@ var ajaxRqst = {
         this.geoPromise.then(
             function fin () {
                 ajaxRqst.weatherPromise = $.ajax({
-                    url : `${ajaxRqst.config.owmBaseUrl}lat=${userSettings.getCoords.lat}` +
-                    `&lon=${userSettings.getCoords.long}${ajaxRqst.config.callback}` + 
-                    `&units=${userSettings.config.units}`,
+                    url : ajaxRqst.config.owmBaseUrl+ "lat=" + userSettings.getCoords.lat +
+                        "&lon=" + userSettings.getCoords.long + ajaxRqst.config.callback + 
+                        "&units=" + userSettings.config.units,
                     dataType : "jsonp"
                 });
                 ajaxRqst.weatherPromise.then(function (result, textStatus, xhr) {
                     displayItems.locationText(result.name);
-                    displayItems.tempText(result.main.temp);
+                    displayItems.tempText(result.main.temp + "° " + userSettings.appendUnit());
                 }, ajaxRqst.ajaxError);
             },
             function fail (message) {
@@ -88,11 +96,9 @@ var ajaxRqst = {
     }
 };
 
+
 $(document).ready(function () {
     displayItems.init( $('#location'), $('#temperature') );
     userSettings.setLocation();
     ajaxRqst.getWeather();
 });
-
-//`${ajaxRqst.config.owmBaseUrl}lat=${userSettings.getCoords.lat}&
-//long=${userSettings.getCoords.long}${ajaxRqst.config.callback}`
