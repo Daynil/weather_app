@@ -81,7 +81,7 @@ var displayItems = {
     setWeatherIcon : function (jsonWeather) {
         var iconNum = jsonWeather.weather[0].icon;
         this.$weatherIcon.attr("src", "http://openweathermap.org/img/w/" + iconNum + ".png")
-        this.setBackground(jsonWeather);
+        this.setBackgroundJson(jsonWeather);
     },
     
     backgrounds : {
@@ -126,7 +126,7 @@ var displayItems = {
         }
     },
     
-    setBackground : function (jsonWeather) {
+    setBackgroundJson : function (jsonWeather) {
         function randomBackground(imageArr) {
             var arrLen = imageArr.length;
             var randIndex = Math.floor(Math.random() * arrLen);
@@ -134,7 +134,8 @@ var displayItems = {
         }
         // Set the background randomly based on day/night and temperature
         var today = new Date();
-        var msNow = today.getTime();
+        //var msNow = today.getTime();
+        var msNow = jsonWeather.dt;
         var isDay = false;
         if (msNow >= jsonWeather.sys.sunrise && msNow <= jsonWeather.sys.sunset) {
             isDay = true;
@@ -143,7 +144,6 @@ var displayItems = {
         if (userSettings.config.units !== 'imperial') {
             curTemp = util.changeUnits(curTemp, userSettings.config.units);
         }
-        var strUrl = "";
         var imageArray = [];
         
         if ( curTemp < 50 ) { // COLD
@@ -157,8 +157,11 @@ var displayItems = {
         }
         
         var strImageUrl = randomBackground(imageArray);
-        
         this.$pageWrapper.css("background", "url('" + strImageUrl + "')");
+    },
+    
+    setBackgroundUrl : function (stringUrl) {
+        this.$pageWrapper.css("background", "url('" + stringUrl + "')");
     }
     
 };
@@ -174,8 +177,8 @@ var ajaxRqst = {
     geoLocate : function () {
         this.geoPromise = new Promise( function (resolve, reject) {
             navigator.geolocation.getCurrentPosition(function success(position) {
-                userSettings.getCoords.lat = position.coords.latitude.toFixed(2);
-                userSettings.getCoords.long = position.coords.longitude.toFixed(2);
+                userSettings.getCoords.lat = position.coords.latitude.toFixed(4);
+                userSettings.getCoords.long = position.coords.longitude.toFixed(4);
                 
                 // Get a good city name from google maps
                 $.ajax({
@@ -185,9 +188,9 @@ var ajaxRqst = {
                     dataType : "json"
                 })
                 .done(function (result, textStatus, xhr) {
-                userSettings.config.location.name = result.results[0].address_components[2].long_name + 
-                    ", " + result.results[0].address_components[4].short_name;
-                displayItems.locationText(userSettings.config.location.name);
+                    userSettings.config.location.name = result.results[0].address_components[2].long_name + 
+                        ", " + result.results[0].address_components[4].short_name;
+                    displayItems.locationText(userSettings.config.location.name);
                 })
                 .fail(ajaxRqst.ajaxError);
                 
